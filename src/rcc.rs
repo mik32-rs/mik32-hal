@@ -70,7 +70,7 @@ impl Default for Config {
 }
 
 impl Config {
-    fn init(config: Config) {
+    pub fn init(config: Config) {
         let wu = unsafe { WakeUp::steal() };
         let pm = unsafe { Pm::steal() };
         wu.clocks_sys().modify(|_, w| w
@@ -103,6 +103,10 @@ impl Config {
             AhbClkMux::Osc32k => w.ahb_clk_mux().osc32k(),
             AhbClkMux::Lsi32k => w.ahb_clk_mux().lsi32k(),
         });
+
+        pm.div_ahb().modify(|_, w| unsafe { w.bits(config.ahb_div as u32) });
+        pm.div_apb_m().modify(|_, w| unsafe { w.bits(config.apb_m_div as u32) });
+        pm.div_apb_m().modify(|_, w| unsafe { w.bits(config.apb_m_div as u32) });
 
         wu.clocks_bu().modify(|_, w| match config.rtcclk {
             RtcClkMux::Automatic => w.rtc_clk_mux().automatic(),
