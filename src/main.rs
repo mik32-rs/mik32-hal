@@ -51,11 +51,11 @@ fn main() -> ! {
     let mut pin = g.p8_0_7.into_output();
 
     loop {
-        pin.set_low();
+        pin.toggle();
         for _ in 0..100_000_0 {
             nop()
         }
-        pin.set_high();
+        pin.toggle();
         for _ in 0..100_000_0 {
             nop()
         }

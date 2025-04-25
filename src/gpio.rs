@@ -1,7 +1,6 @@
 //! General Purpose Input / Output
  
-use core::{marker::PhantomData, pin::Pin};
-use embedded_hal::digital::OutputPin;
+use core::marker::PhantomData;
 mod partially_erased;
 pub use partially_erased::{PEPin, PartiallyErasedPin};
  
@@ -70,7 +69,7 @@ impl<const P: u8, const N: u8, MODE> Pin<P, N, MODE> {
     #[inline(always)]
     fn _is_low(&self) -> bool {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Gpio::<P>::ptr()).state().read().bits() & (1 << N) != 0 }
+        unsafe { (*Gpio::<P>::ptr()).output().read().bits() & (1 << N) == 0 }
     }
 }
 
@@ -100,6 +99,7 @@ impl<const P: u8, const N: u8, MODE> PinExt for Pin<P, N, MODE> {
         P as u8 - b'A'
     }
 }
+
 
 impl<const P: u8, const N: u8> Pin<P, N, Output> {
     #[inline(always)]
