@@ -2,6 +2,7 @@
  
 use core::marker::PhantomData;
 mod partially_erased;
+use mik32v2_pac::timer32_0::value;
 pub use partially_erased::{PEPin, PartiallyErasedPin};
  
 /// Extension trait to split a GPIO peripheral in independent pins and registers
@@ -56,10 +57,11 @@ impl<const P: u8, const N: u8, MODE> Pin<P, N, MODE> {
             PinState::Low => self._set_low(),
         }
     }
+
     #[inline(always)]
     fn _set_high(&mut self) {
         // NOTE(unsafe) atomic write to a stateless register
-        unsafe { (*Gpio::<P>::ptr()).set().write(|w| w.bits(1 << N)); }
+        unsafe { (*Gpio::<P>::ptr()).output().write(|w| w.bits(1 << N)); }
     }
     #[inline(always)]
     fn _set_low(&mut self) {
@@ -82,6 +84,66 @@ impl<const P: u8, const N: u8, MODE> Pin<P, N, MODE> {
         unsafe {
             (*Gpio::<P>::ptr()).direction_out().write(|w| w.bits(1 << N));
         }
+        Pin::new()
+    }
+
+    /// Configures the pin to operate as a floating input pin
+    pub fn into_floating_input(mut self) -> Pin<P, N, Input<Floating>> {
+        unsafe {
+            (*Gpio::<P>::ptr()).direction_in().write(|w| w.bits(1 << N));
+            let mask = 0b11 << 2 * N;
+            let value = 0b00 << 2 * N;
+            match P {
+                0 => (*mik32v2_pac::PadConfig::ptr()).pad0_pupd()
+                .modify(|r, w| w.bits((r.bits() & !mask) | value)),
+                1 => (*mik32v2_pac::PadConfig::ptr()).pad1_pupd()
+                .modify(|r, w| w.bits((r.bits() & !mask) | value)),
+                2 => (*mik32v2_pac::PadConfig::ptr()).pad2_pupd()
+                .modify(|r, w| w.bits((r.bits() & !mask) | value)),
+                _ => panic!("Invalid GPIO port number: {}", P)
+            }
+        };
+
+        Pin::new()
+    }
+
+    /// Configures the pin to operate as a pulled down input pin
+    pub fn into_pull_down_input(mut self) -> Pin<P, N, Input<Floating>> {
+        unsafe {
+            (*Gpio::<P>::ptr()).direction_in().write(|w| w.bits(1 << N));
+            let mask = 0b11 << 2 * N;
+            let value = 0b10 << 2 * N;
+            match P {
+                0 => (*mik32v2_pac::PadConfig::ptr()).pad0_pupd()
+                .modify(|r, w| w.bits((r.bits() & !mask) | value)),
+                1 => (*mik32v2_pac::PadConfig::ptr()).pad1_pupd()
+                .modify(|r, w| w.bits((r.bits() & !mask) | value)),
+                2 => (*mik32v2_pac::PadConfig::ptr()).pad2_pupd()
+                .modify(|r, w| w.bits((r.bits() & !mask) | value)),
+                _ => panic!("Invalid GPIO port number: {}", P)
+            }
+        };
+
+        Pin::new()
+    }
+
+    /// Configures the pin to operate as a pulled up input pin
+    pub fn into_pull_up_input(mut self) -> Pin<P, N, Input<Floating>> {
+        unsafe {
+            (*Gpio::<P>::ptr()).direction_in().write(|w| w.bits(1 << N));
+            let mask = 0b11 << 2 * N;
+            let value = 0b01 << 2 * N;
+            match P {
+                0 => (*mik32v2_pac::PadConfig::ptr()).pad0_pupd()
+                .modify(|r, w| w.bits((r.bits() & !mask) | value)),
+                1 => (*mik32v2_pac::PadConfig::ptr()).pad1_pupd()
+                .modify(|r, w| w.bits((r.bits() & !mask) | value)),
+                2 => (*mik32v2_pac::PadConfig::ptr()).pad2_pupd()
+                .modify(|r, w| w.bits((r.bits() & !mask) | value)),
+                _ => panic!("Invalid GPIO port number: {}", P)
+            }
+        };
+
         Pin::new()
     }
 }
@@ -146,6 +208,18 @@ impl<const P: u8, const N: u8> Pin<P, N, Output> {
         } else {
             self.set_low()
         }
+    }
+}
+
+impl<const P: u8, const N: u8, MODE> Pin<P, N, Input<MODE>> {
+    #[inline(always)]
+    pub fn is_high(&self) -> bool {
+        !self.is_low()
+    }
+
+    #[inline(always)]
+    pub fn is_low(&self) -> bool {
+        self._is_low()
     }
 }
 
@@ -252,14 +326,14 @@ gpio!(Gpio16_1, gpio16_1, gpio_1, 1, P16_1_n, [
 ]);
 
 gpio!(Gpio8_2, gpio8_2, gpio_2, 2, P8_2_n, [
-    P8_0_0: (p8_0_0, 0),
-    P8_0_1: (p8_0_1, 1),
-    P8_0_2: (p8_0_2, 2),
-    P8_0_3: (p8_0_3, 3),
-    P8_0_4: (p8_0_4, 4),
-    P8_0_5: (p8_0_5, 5),
-    P8_0_6: (p8_0_6, 6),
-    P8_0_7: (p8_0_7, 7),
+    P8_2_0: (p8_2_0, 0),
+    P8_2_1: (p8_2_1, 1),
+    P8_2_2: (p8_2_2, 2),
+    P8_2_3: (p8_2_3, 3),
+    P8_2_4: (p8_2_4, 4),
+    P8_2_5: (p8_2_5, 5),
+    P8_2_6: (p8_2_6, 6),
+    P8_2_7: (p8_2_7, 7),
 ]);
 
 
