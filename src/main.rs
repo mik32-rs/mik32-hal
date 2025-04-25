@@ -51,31 +51,13 @@ fn main() -> ! {
     let mut led = gpio_2.p8_2_7.into_output();
 
     let gpio_0 = p.gpio16_0.split();
-
-    let input0 = gpio_0.p16_0_0.into_pull_up_input();
-    let input1 = gpio_0.p16_0_1.into_pull_up_input();
-    let input2 = gpio_0.p16_0_2.into_pull_down_input();
-    let input3 = gpio_0.p16_0_3.into_pull_up_input();
-    let input4 = gpio_0.p16_0_4.into_floating_input();
-    let mut input5 = gpio_0.p16_0_5.into_pull_up_input();
-
-    input5 = input5.into_floating_input();
-
+    let input = gpio_0.p16_0_3.into_floating_input();
 
     loop {
-        input0.is_high();
-        input1.is_high();
-        input2.is_high();
-        input3.is_high();
-        input4.is_high();
-        input5.is_high();
-        led.toggle();
-        for _ in 0..100_000_0 {
-            nop()
-        }
-        led.toggle();
-        for _ in 0..100_000_0 {
-            nop()
+        if input.is_high() {
+            led.set_high();
+        } else {
+            led.set_low();
         }
     }
 }

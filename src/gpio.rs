@@ -71,7 +71,7 @@ impl<const P: u8, const N: u8, MODE> Pin<P, N, MODE> {
     #[inline(always)]
     fn _is_low(&self) -> bool {
         // NOTE(unsafe) atomic read with no side effects
-        unsafe { (*Gpio::<P>::ptr()).output().read().bits() & (1 << N) == 0 }
+        unsafe { (*Gpio::<P>::ptr()).state().read().bits() & (1 << N) == 0 }
     }
 }
 
