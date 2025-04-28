@@ -3,6 +3,7 @@
 use core::marker::PhantomData;
 mod partially_erased;
 mod convert;
+mod emb_hal;
 use mik32v2_pac::timer32_0::value;
 pub use partially_erased::{PEPin, PartiallyErasedPin};
 use embedded_hal::digital::PinState;
