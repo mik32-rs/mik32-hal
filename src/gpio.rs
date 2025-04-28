@@ -6,7 +6,6 @@ mod convert;
 mod emb_hal;
 use mik32v2_pac::timer32_0::value;
 pub use partially_erased::{PEPin, PartiallyErasedPin};
-use embedded_hal::digital::PinState;
  
 /// Extension trait to split a GPIO peripheral in independent pins and registers
 pub trait GpioExt {
@@ -38,6 +37,14 @@ impl<const P: u8, const N: u8, MODE> Pin<P, N, MODE> {
     const fn new() -> Self {
         Self { _mode: PhantomData }
     }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum PinState {
+    /// Low pin state
+    Low,
+    /// High pin state
+    High,
 }
 
 impl<const P: u8, const N: u8, MODE> Pin<P, N, MODE> {
