@@ -90,3 +90,17 @@ impl<const P: u8> PartiallyErasedPin<P, Output> {
     }
 }
 
+impl<const P: u8, MODE> PartiallyErasedPin<P, Input<MODE>> {
+    #[inline(always)]
+    pub fn is_high(&self) -> bool {
+        !self.is_low()
+    }
+
+    #[inline(always)]
+    pub fn is_low(&self) -> bool {
+        // NOTE(unsafe) atomic read with no side effects
+        unsafe { (*Gpio::<P>::ptr()).state().read().bits() & (1 << self.i) == 0 }
+    }
+}
+
+
