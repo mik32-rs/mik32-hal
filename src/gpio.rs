@@ -4,6 +4,7 @@ use core::marker::PhantomData;
 mod partially_erased;
 use mik32v2_pac::timer32_0::value;
 pub use partially_erased::{PEPin, PartiallyErasedPin};
+use embedded_hal::digital::PinState;
  
 /// Extension trait to split a GPIO peripheral in independent pins and registers
 pub trait GpioExt {
@@ -20,14 +21,6 @@ pub trait PinExt {
     fn pin_id(&self) -> u8;
     /// Return port number
     fn port_id(&self) -> u8;
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum PinState {
-    /// Low pin state
-    Low,
-    /// High pin state
-    High,
 }
 
 /// Generic pin type
@@ -148,6 +141,15 @@ impl<const P: u8, const N: u8, MODE> Pin<P, N, MODE> {
     }
 }
 
+impl<const P: u8, const N: u8, MODE> Pin<P, N, MODE> {
+    /// Erases the pin number from the type
+    ///
+    /// This is useful when you want to collect the pins into an array where you
+    /// need all the elements to have the same type
+    pub fn erase_number(self) -> PEPin<P, MODE> {
+        PEPin::new(N)
+    }
+}
 
 impl<const P: u8, const N: u8, MODE> PinExt for Pin<P, N, MODE> {
     type Mode = MODE;
