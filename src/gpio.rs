@@ -178,6 +178,9 @@ pub struct PullUp;
 /// Output mode (type state)
 pub struct Output;
 
+/// Serial mode (type state)
+pub struct SerialMode;
+
 macro_rules! gpio {
     ($GPIOX:ident, $gpiox:ident, $iopxenr:ident, $port_id:expr, $PXn:ident, [
         $($PXi:ident: ($pxi:ident, $i:expr $(, $MODE:ty)?),)+

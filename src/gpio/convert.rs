@@ -71,4 +71,24 @@ impl<const P: u8, const N: u8, MODE> Pin<P, N, MODE> {
 
         Pin::new()
     }
+
+    /// Configures the output to work in the serial port
+    pub fn into_serial_port(mut self) -> Pin<P, N, SerialMode> {
+        unsafe {
+            (*Gpio::<P>::ptr()).direction_in().write(|w| w.bits(1 << N));
+            let mask = 0b11 << 2 * N;
+            let value = 0b01 << 2 * N;
+            match P {
+                0 => (*mik32v2_pac::PadConfig::ptr()).pad0_cfg()
+                .modify(|r, w| w.bits((r.bits() & !mask) | value)),
+                1 => (*mik32v2_pac::PadConfig::ptr()).pad1_cfg()
+                .modify(|r, w| w.bits((r.bits() & !mask) | value)),
+                2 => (*mik32v2_pac::PadConfig::ptr()).pad2_cfg()
+                .modify(|r, w| w.bits((r.bits() & !mask) | value)),
+                _ => panic!("Invalid GPIO port number: {}", P)
+            }
+        };
+
+        Pin::new()
+    }
 }

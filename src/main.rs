@@ -50,15 +50,15 @@ fn main() -> ! {
     let gpio_2 = p.gpio8_2.split();
     let mut led = gpio_2.p8_2_7.into_output();
 
+    let mut tx = gpio_2.p8_2_0.into_serial_port();
+
     let gpio_0 = p.gpio16_0.split();
-    let input = gpio_0.p16_0_3.into_floating_input();
 
     loop {
-        if input.is_high() {
-            led.set_high();
-        } else {
-            led.set_low();
-        }
+        for _ in 0..100_0000 { nop() };
+        led.set_high();
+        for _ in 0..100_000 { nop() };
+        led.set_low();
     }
 }
 
