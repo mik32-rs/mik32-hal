@@ -72,8 +72,8 @@ impl<const P: u8, const N: u8, MODE> Pin<P, N, MODE> {
         Pin::new()
     }
 
-    /// Configures the output to work in the serial port
-    pub fn into_serial_port(mut self) -> Pin<P, N, SerialMode> {
+    /// Configures the output to work in the Func2 Mode
+    pub fn into_serial_port(mut self) -> Pin<P, N, Func2Mode> {
         unsafe {
             (*Gpio::<P>::ptr()).direction_in().write(|w| w.bits(1 << N));
             let mask = 0b11 << 2 * N;

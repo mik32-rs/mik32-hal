@@ -1,6 +1,21 @@
 use core::ops::Deref;
 use mik32v2_pac::{Usart0, Usart1};
+
+
 pub trait Pins<U> {}
+pub trait PinTx<U> {}
+pub trait PinRx<U> {}
+
+impl<U, TX, RX> Pins<U> for (TX, RX)
+where
+    TX: PinTx<U>,
+    RX: PinRx<U>,
+{
+}
+
+
+impl PinTx<USART1> for PA9<Alternate<AF7>> {}
+
 
 /// Serial abstraction
 pub struct Serial<U, PINS> {
@@ -12,9 +27,8 @@ impl<U, PINS> Serial<U, PINS>
 where
     PINS: Pins<U>,
     U: Instance,
-{
+{}
 
-}
 
 /// Implemented by all USART instances
 pub trait Instance: Deref<Target = mik32v2_pac::usart_0::RegisterBlock> {
