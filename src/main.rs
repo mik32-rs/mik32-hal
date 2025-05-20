@@ -8,6 +8,7 @@ use mik32v2_pac::{epic::mask_edge_clear::Gpio, pm::ahb_mux::AhbClkMux, spi_0::de
 use mik32_rt::entry;
 mod rcc;
 mod time;
+mod serial;
 // mod usart;
 mod peripheral;
 mod gpio;
