@@ -13,6 +13,7 @@ mod serial;
 mod peripheral;
 mod gpio;
 use riscv::{self as _};
+use serial::Serial;
 
 #[derive(Debug)]
 enum Error {
@@ -49,11 +50,21 @@ fn main() -> ! {
     let p = init(device_config).unwrap();
 
     let gpio_2 = p.gpio8_2.split();
+    let gpio_0 = p.gpio16_0.split();
     let mut led = gpio_2.p8_2_7.into_output();
 
-    let mut tx = gpio_2.p8_2_0.into_serial_port();
+    let mut tx = gpio_0.p16_0_6.into_serial_port();
+    let mut rx = gpio_0.p16_0_5.into_serial_port();
 
-    let gpio_0 = p.gpio16_0.split();
+    let pins = (tx, rx);
+
+    let serial = Serial::new(
+        p.usart_0,
+        pins, 
+        serial::Config {  }
+    );
+
+    let (mut tx, mut rx) = serial.split();
 
     loop {
         for _ in 0..100_0000 { nop() };
