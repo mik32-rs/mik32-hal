@@ -25,9 +25,19 @@ version = "1.0.0"
 source = "git+https://github.com/rust-embedded/embedded-hal.git#520945278942c301433c391f63a075227d9e7c84"
 
 [[package]]
+name = "embedded-hal-nb"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fba4268c14288c828995299e59b12babdbe170f6c6d73731af1b4648142e8605"
+dependencies = [
+ "embedded-hal 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nb",
+]
+
+[[package]]
 name = "mik32-rt"
 version = "0.1.0"
-source = "git+https://github.com/mik32-rs/mik32-rt.git#b6ba231407c7196a21a9ecb263a0c51879b772e4"
+source = "git+https://github.com/mik32-rs/mik32-rt.git#51071116ffab7b60884202bb386e10b02c0b443d"
 dependencies = [
  "mik32-rt-macros",
  "riscv 0.13.0",
@@ -36,7 +46,7 @@ dependencies = [
 [[package]]
 name = "mik32-rt-macros"
 version = "0.5.0"
-source = "git+https://github.com/mik32-rs/mik32-rt.git#b6ba231407c7196a21a9ecb263a0c51879b772e4"
+source = "git+https://github.com/mik32-rs/mik32-rt.git#51071116ffab7b60884202bb386e10b02c0b443d"
 dependencies = [
  "proc-macro-error",
  "proc-macro2",
@@ -50,9 +60,11 @@ version = "0.1.0"
 dependencies = [
  "critical-section 1.2.0 (git+https://github.com/rust-embedded/critical-section.git)",
  "embedded-hal 1.0.0 (git+https://github.com/rust-embedded/embedded-hal.git)",
+ "embedded-hal-nb",
  "mik32-rt",
  "mik32v2-pac",
- "riscv 0.12.1",
+ "nb",
+ "riscv 0.13.0",
 ]
 
 [[package]]
@@ -63,6 +75,12 @@ dependencies = [
  "riscv 0.12.1",
  "vcell",
 ]
+
+[[package]]
+name = "nb"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d5439c4ad607c3c23abf66de8c8bf57ba8adcd1f129e699851a6e43935d339d"
 
 [[package]]
 name = "paste"
@@ -96,9 +114,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.94"
+version = "1.0.95"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a31971752e70b8b2686d7e46ec17fb38dad4051d94024c88df49b667caea9c84"
+checksum = "02b3e5e68a3a1a02aad3ec490a98007cbc13c37cbe84a3cd7b8e406d76e7f778"
 dependencies = [
  "unicode-ident",
 ]
@@ -146,7 +164,7 @@ checksum = "f265be5d634272320a7de94cea15c22a3bfdd4eb42eb43edc528415f066a1f25"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -157,7 +175,7 @@ checksum = "e8c4aa1ea1af6dcc83a61be12e8189f9b293c3ba5a487778a4cd89fb060fdbbc"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -179,9 +197,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.100"
+version = "2.0.101"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b09a44accad81e1ba1cd74a32461ba89dee89095ba17b32f5d03683b1b1fc2a0"
+checksum = "8ce2b7fc941b3a24138a0a7cf8e858bfc6a992e7978a068a5c760deb0ed43caf"
 dependencies = [
  "proc-macro2",
  "quote",

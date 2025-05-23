@@ -1,9 +1,22 @@
-use core::{marker::PhantomData, ops::Deref};
+use core::{error::Error, marker::PhantomData, ops::Deref};
 use mik32v2_pac::{crypto::config, Pm, Usart0, Usart1};
+use embedded_hal_nb::serial::{ErrorKind, ErrorType, Read, Write};
+use core::ptr;
 
 use crate::gpio::{self, Func2Mode};
 
-
+/// Serial error
+#[derive(Debug)]
+pub enum SerialError {
+    /// Framing error
+    Framing,
+    /// Noise error
+    Noise,
+    /// RX buffer overrun
+    Overrun,
+    /// Parity check error
+    Parity,
+}
 
 pub trait Pins<U> {}
 pub trait PinTx<U> {}
@@ -78,6 +91,39 @@ pub struct Config {}
 pub struct Tx<U> {
     _usart: PhantomData<U>,
 }
+
+impl<U> ErrorType for Tx<U>
+where
+    U: Instance,
+{
+    type Error = ErrorKind;
+}
+
+impl<U> Write<u8> for Tx<U>
+where
+    U: Instance,
+{
+    fn flush(&mut self) -> nb::Result<(), Self::Error> {
+        // NOTE(unsafe) atomic read with no side effects
+        let isr = unsafe { (*U::ptr()).flags().read() };
+
+        if isr.tc().bit_is_set() {
+            Ok(())
+        } else {
+            Err(nb::Error::WouldBlock)
+        }
+    }
+
+    fn write(&mut self, byte: u8) -> nb::Result<(), Self::Error> {
+        unsafe {
+            (*U::ptr()).txdata().write(|w| w.tdr().bits(byte as u16));
+            while (*U::ptr()).flags().read().tc().bit_is_clear() {};
+        }
+        Ok(())
+    }
+}
+
+
 
 /// Serial receiver
 pub struct Rx<U> {
