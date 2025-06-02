@@ -1,6 +1,8 @@
-use core::{error::Error, marker::PhantomData, ops::Deref};
+use core::{error::Error, fmt, marker::PhantomData, ops::Deref};
 use mik32v2_pac::{crypto::config, Pm, Usart0, Usart1};
 use embedded_hal_nb::serial::{ErrorKind, ErrorType, Read, Write};
+use nb::block;
+use riscv::register::mcounteren::write;
 use core::ptr;
 
 use crate::gpio::{self, Func2Mode};
@@ -123,8 +125,6 @@ where
     }
 }
 
-
-
 /// Serial receiver
 pub struct Rx<U> {
     _usart: PhantomData<U>,
@@ -157,4 +157,14 @@ macro_rules! impl_instance {
 impl_instance! {
     Usart0: (usart0, uart_0),
     Usart1: (usart1, uart_1),
+}
+
+impl<U> fmt::Write for Tx<U>
+where
+    Tx<U>: embedded_hal_nb::serial::Write<u8>,
+{
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        let _ = s.as_bytes().iter().map(|c| block!(self.write(*c))).last();
+        Ok(())
+    }
 }

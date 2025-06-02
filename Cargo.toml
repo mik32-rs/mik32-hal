@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 mik32v2-pac = { path = "../mik32v2-pac" }
-mik32-rt ={ git = "https://github.com/mik32-rs/mik32-rt.git", features = ["memory-spifi"]}
+mik32-rt ={ git = "https://github.com/mik32-rs/mik32-rt.git"}
 riscv = { version = "*", features = ["critical-section-single-hart"]}
 critical-section = {git = "https://github.com/rust-embedded/critical-section.git"}
 embedded-hal = {git = "https://github.com/rust-embedded/embedded-hal.git"}

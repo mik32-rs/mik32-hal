@@ -2,8 +2,7 @@
 #![no_main]
 #![feature(riscv_ext_intrinsics)]
 
-use core::{arch::riscv32::nop, mem::take, panic::PanicInfo};
-use embedded_hal_nb::serial::Write;
+use core::{arch::riscv32::nop, fmt::Write, mem::take, panic::PanicInfo};
 use gpio::{GpioExt, Input, PinExt};
 use mik32v2_pac::{epic::mask_edge_clear::Gpio, pm::ahb_mux::AhbClkMux, spi_0::delay, Peripherals};
 use mik32_rt::entry;
@@ -67,11 +66,9 @@ fn main() -> ! {
 
     let (mut tx, mut rx) = serial.split();
     loop {
-        tx.write(66).unwrap();
-        // for _ in 0..100_0000 { nop() };
-        led.set_high();
-        // for _ in 0..100_000 { nop() };
-        led.set_low();
+        writeln!(tx, "Hello, world!").unwrap();
+        led.toggle();
+        for _ in 0..100_0000 { nop() };
     }
 }
 
