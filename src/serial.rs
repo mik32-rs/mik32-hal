@@ -1,24 +1,12 @@
 use core::{error::Error, fmt, marker::PhantomData, ops::Deref};
-use mik32v2_pac::{crypto::config, Pm, Usart0, Usart1};
+use mik32v2_pac::{crypto::config, usart_0::flags, Pm, Usart0, Usart1};
 use embedded_hal_nb::serial::{ErrorKind, ErrorType, Read, Write};
 use nb::block;
+use rcc::Config as RccConfig;
 use riscv::register::mcounteren::write;
 use core::ptr;
 
-use crate::gpio::{self, Func2Mode};
-
-/// Serial error
-#[derive(Debug)]
-pub enum SerialError {
-    /// Framing error
-    Framing,
-    /// Noise error
-    Noise,
-    /// RX buffer overrun
-    Overrun,
-    /// Parity check error
-    Parity,
-}
+use crate::{gpio::{self, Func2Mode}, rcc};
 
 pub trait Pins<U> {}
 pub trait PinTx<U> {}
@@ -56,6 +44,7 @@ where
         U::enable_clock(&pm);
 
         // TODO: Calculate correct baudrate divisor on the fly
+
         usart.divider().modify(|_, w| unsafe { w.brr().bits(0xd05) }); 
 
         // Enable tx / rx and reset USART
@@ -89,6 +78,56 @@ where
 /// USART configuration
 pub struct Config {}
 
+/// Serial receiver
+pub struct Rx<U> {
+    _usart: PhantomData<U>,
+}
+
+impl<U> ErrorType for Rx<U>
+where
+    U: Instance,
+{
+    type Error = ErrorKind;
+}
+
+impl<U> Read<u8> for Rx<U>
+where
+    U: Instance,
+{
+    fn read(&mut self) -> nb::Result<u8, Self::Error> {
+        // NOTE(unsafe) atomic read with no side effects
+        let flags = unsafe { (*U::ptr()).flags() };
+
+        if flags.read().pe().bit_is_set() {
+            flags.write(|w| w.pe().clear_bit_by_one());
+            return Err(nb::Error::Other(ErrorKind::Parity));
+        }
+        if flags.read().fe().bit_is_set() {
+            flags.write(|w| w.fe().clear_bit_by_one());
+            return Err(nb::Error::Other(ErrorKind::FrameFormat));
+        }
+        if flags.read().nf().bit_is_set() {
+            flags.write(|w| w.nf().clear_bit_by_one());
+            return Err(nb::Error::Other(ErrorKind::Noise));
+        }
+        if flags.read().ore().bit_is_set() {
+            flags.write(|w| w.ore().clear_bit_by_one());
+            return Err(nb::Error::Other(ErrorKind::Overrun));
+        }
+
+        if flags.read().rxne().bit_is_set() {
+            // NOTE(unsafe): Atomic read with no side effects
+            return Ok(unsafe {
+                // Casting to `u8` should be fine, as we've configured the USART
+                // to use 8 data bits.
+                (*U::ptr()).rxdata().read().rdr().bits() as u8
+            });
+        }
+
+        Err(nb::Error::WouldBlock)
+    }
+}
+
 /// Serial transmitter
 pub struct Tx<U> {
     _usart: PhantomData<U>,
@@ -107,9 +146,9 @@ where
 {
     fn flush(&mut self) -> nb::Result<(), Self::Error> {
         // NOTE(unsafe) atomic read with no side effects
-        let isr = unsafe { (*U::ptr()).flags().read() };
+        let flags = unsafe { (*U::ptr()).flags().read() };
 
-        if isr.tc().bit_is_set() {
+        if flags.tc().bit_is_set() {
             Ok(())
         } else {
             Err(nb::Error::WouldBlock)
@@ -123,11 +162,6 @@ where
         }
         Ok(())
     }
-}
-
-/// Serial receiver
-pub struct Rx<U> {
-    _usart: PhantomData<U>,
 }
 
 /// Implemented by all USART instances

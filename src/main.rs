@@ -3,6 +3,7 @@
 #![feature(riscv_ext_intrinsics)]
 
 use core::{arch::riscv32::nop, fmt::Write, mem::take, panic::PanicInfo};
+use embedded_hal_nb::serial::{Read, Write as NbWrite};
 use gpio::{GpioExt, Input, PinExt};
 use mik32v2_pac::{epic::mask_edge_clear::Gpio, pm::ahb_mux::AhbClkMux, spi_0::delay, Peripherals};
 use mik32_rt::entry;
@@ -12,6 +13,7 @@ mod serial;
 // mod usart;
 mod peripheral;
 mod gpio;
+use nb::block;
 use riscv::{self as _};
 use serial::Serial;
 
@@ -60,15 +62,16 @@ fn main() -> ! {
 
     let serial = Serial::new(
         p.usart_0,
-        pins, 
+        pins,
         serial::Config {  }
     );
 
     let (mut tx, mut rx) = serial.split();
+    writeln!(tx, "Hello, world!").unwrap();
+    let mut buf = [0_u8; 10];
     loop {
-        writeln!(tx, "Hello, world!").unwrap();
-        led.toggle();
-        for _ in 0..100_0000 { nop() };
+        let received = block!(rx.read()).unwrap_or('E' as u8);
+        block!(tx.write(received)).ok();
     }
 }
 
